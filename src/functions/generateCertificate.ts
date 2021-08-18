@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import handlebars from "handlebars";
 import dayjs from "dayjs";
+import { S3 } from "aws-sdk";
 
 interface ICreateCertificate {
   id: string;
@@ -28,14 +29,27 @@ export const handle = async (event) => {
   // id, name, grade
   const { id, name, grade } = JSON.parse(event.body) as ICreateCertificate;
 
-  await document.put({
+  const response = await document.query({
     TableName: "users_certificates",
-    Item: {
-      id,
-      name, 
-      grade
+    KeyConditionExpression: "id = :id",
+    ExpressionAttributeValues: {
+      ":id": id
     }
   }).promise();
+
+  const userAlreadyExists = response.Items[0];
+
+  if(!userAlreadyExists) {
+    await document.put({
+      TableName: "users_certificates",
+      Item: {
+        id,
+        name, 
+        grade
+      }
+    }).promise();
+  }
+
 
   //gera o certificado
   //compila handlebars
@@ -59,6 +73,7 @@ export const handle = async (event) => {
     args: chromium.args,
     defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath
+    // executablePath: "/usr/bin/chromium-browser"
   });
 
   const page = await browser.newPage();
@@ -74,7 +89,18 @@ export const handle = async (event) => {
   });
 
   await browser.close();
+
   //salvar no s3
+
+  const s3 = new S3();
+
+  await s3.putObject({
+    Bucket: "slscertificatesignite",
+    Key: `${id}.pdf`,
+    ACL: "public-read",
+    Body: pdf,
+    ContentType: "application/pdf"
+  }).promise();
 
 
   return {
