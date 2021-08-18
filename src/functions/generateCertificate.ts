@@ -107,7 +107,7 @@ export const handle = async (event) => {
     statusCode: 201,
     body: JSON.stringify({
       message: "Certificate created!",
-      url: `https://slscertificatesignite.s3.sa-east-1.amazonaws.com/${id}`
+      url: `https://slscertificatesignite.s3.sa-east-1.amazonaws.com/${id}.pdf`
     }),
     headers: {
       "Content-type": "application/json"

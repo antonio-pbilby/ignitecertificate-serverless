@@ -22,7 +22,7 @@ export const handle: APIGatewayProxyHandler = async (event) => {
       body: JSON.stringify({
         message: "Certificado válido",
         name: userCertificate.name,
-        url: `https://slscertificatesignite.s3.sa-east-1.amazonaws.com/${id}`
+        url: `https://slscertificatesignite.s3.sa-east-1.amazonaws.com/${id}.pdf`
       })
     };
   }
